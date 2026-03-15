@@ -68,6 +68,27 @@ class CliTestCase(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("issue 999 not found", result.stderr)
 
+    def test_add_with_tags_stores_tags(self) -> None:
+        created = self.run_json("add", "Fix login bug", "--tags", "bug,urgent")
+        self.assertEqual(created["tags"], ["bug", "urgent"])
+        self.assertEqual(created["status"], "open")
+
+    def test_add_without_tags_stores_empty_list(self) -> None:
+        created = self.run_json("add", "Refactor auth module")
+        self.assertEqual(created["tags"], [])
+
+    def test_list_includes_tags_field(self) -> None:
+        self.run_json("add", "Add pagination", "--tags", "feature")
+        self.run_json("add", "Update README")
+        issues = self.run_json("list")
+        self.assertEqual(len(issues), 2)
+        self.assertIn("tags", issues[0])
+        self.assertIn("tags", issues[1])
+        tagged = next(i for i in issues if i["title"] == "Add pagination")
+        untagged = next(i for i in issues if i["title"] == "Update README")
+        self.assertEqual(tagged["tags"], ["feature"])
+        self.assertEqual(untagged["tags"], [])
+
 
 if __name__ == "__main__":
     unittest.main()
