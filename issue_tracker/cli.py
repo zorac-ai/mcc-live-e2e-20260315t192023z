@@ -18,6 +18,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     add_parser = subparsers.add_parser("add", help="Create a new issue")
     add_parser.add_argument("title")
+    add_parser.add_argument(
+        "--tags",
+        default="",
+        help="Comma-separated list of tags (e.g. bug,urgent)",
+    )
 
     list_parser = subparsers.add_parser("list", help="List issues")
     list_parser.add_argument("--status", choices=("open", "closed"))
@@ -36,7 +41,8 @@ def main(argv: list[str] | None = None) -> int:
     store = IssueStore(Path(args.db))
 
     if args.command == "add":
-        result = store.add(args.title)
+        tags = [t for t in args.tags.split(",") if t] if args.tags else []
+        result = store.add(args.title, tags=tags)
     elif args.command == "list":
         result = store.list(status=args.status)
     elif args.command == "close":

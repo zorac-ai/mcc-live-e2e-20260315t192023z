@@ -21,7 +21,7 @@ class IssueStore:
             items = [item for item in items if item["status"] == status]
         return items
 
-    def add(self, title: str) -> dict[str, Any]:
+    def add(self, title: str, *, tags: list[str] | None = None) -> dict[str, Any]:
         cleaned = title.strip()
         if not cleaned:
             raise ValueError("title must not be empty")
@@ -30,6 +30,7 @@ class IssueStore:
             "id": payload["next_id"],
             "title": cleaned,
             "status": "open",
+            "tags": tags if tags is not None else [],
             "created_at": _now(),
             "closed_at": None,
         }
