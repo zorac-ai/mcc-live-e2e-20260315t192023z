@@ -58,6 +58,27 @@ class CliTestCase(unittest.TestCase):
         self.assertEqual(len(issues), 1)
         self.assertEqual(issues[0]["id"], 1)
 
+    def test_list_open_status_filter(self) -> None:
+        self.run_json("add", "Open issue")
+        self.run_json("add", "Issue to close")
+        self.run_json("close", "2")
+
+        open_issues = self.run_json("list", "--status", "open")
+        self.assertEqual(len(open_issues), 1)
+        self.assertEqual(open_issues[0]["id"], 1)
+        self.assertEqual(open_issues[0]["status"], "open")
+
+    def test_list_all_without_filter(self) -> None:
+        self.run_json("add", "Open one")
+        self.run_json("add", "Close me")
+        self.run_json("close", "2")
+
+        all_issues = self.run_json("list")
+        self.assertEqual(len(all_issues), 2)
+        statuses = {i["id"]: i["status"] for i in all_issues}
+        self.assertEqual(statuses[1], "open")
+        self.assertEqual(statuses[2], "closed")
+
     def test_missing_issue_returns_non_zero(self) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "issue_tracker", "--db", str(self.db_path), "close", "999"],
